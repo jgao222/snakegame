@@ -117,11 +117,9 @@ while running:
             pygame.display.quit()
             pygame.quit()
             sys.exit()
-    keys = pygame.key.get_pressed()
-    if keys[K_p] and paused == False:
-        paused = True
-    elif keys[K_p]:
-        paused = False
+        elif event == pygame.KEYUP: # checking if pause the game
+            if event.key == K_p:
+                paused = not paused
     if not paused:
         handle_input(keys)
                 # print(vy, vx)
