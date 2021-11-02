@@ -121,6 +121,7 @@ while running:
             if event.key == K_p:
                 paused = not paused
     if not paused:
+        keys = pygame.key.get_pressed()
         handle_input(keys)
                 # print(vy, vx)
         check_collision()
