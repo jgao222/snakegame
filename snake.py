@@ -28,18 +28,15 @@ def render():
 
 def handle_input(keys: dict):
     global vy, vx
-    if keys[K_UP] and vy != 1:
-        vy = -1
-        vx = 0
-    elif keys[K_DOWN] and vy != -1:
-        vy = 1
-        vx = 0
-    elif keys[K_LEFT] and vx != 1:
-        vy = 0
-        vx = -1
-    elif keys[K_RIGHT] and vx != -1:
-        vy = 0
-        vx = 1
+    vy, vx = 0, 0
+    if keys[K_UP]:
+        vy += -1
+    if keys[K_DOWN]:
+        vy += 1
+    if keys[K_LEFT] and vx != 1:
+        vx += -1
+    if keys[K_RIGHT] and vx != -1:
+        vx += 1
 
 
 def update_position():
@@ -113,11 +110,13 @@ while running:
     one_input = True
     # do main loop
     for event in pygame.event.get():
+        print(event)
         if event.type == pygame.QUIT:
             pygame.display.quit()
             pygame.quit()
             sys.exit()
-        elif event == pygame.KEYUP: # checking if pause the game
+        elif event.type == pygame.KEYUP: # checking if pause the game
+            print("p key UP")
             if event.key == K_p:
                 paused = not paused
     if not paused:
