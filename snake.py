@@ -102,6 +102,7 @@ def trigger_game_over():
     hpx, hpy = int(GRID_RESOLUTION / 2), int(GRID_RESOLUTION / 2)
     vx, vy = 0, 0
     snake_length = 1
+    pygame.display.set_caption("snakegame | SCORE: 0")
 
 
 # def first_two_keys(keys: list):
