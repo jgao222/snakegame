@@ -5,8 +5,10 @@ from pygame.locals import *
 from collections import deque
 import random
 
+# init and opttions
 pygame.init()
-
+pygame.key.set_repeat()
+print(K_UP)
 
 def render():
     # do the rendering
@@ -26,17 +28,33 @@ def render():
     pygame.display.flip()
 
 
-def handle_input(keys: dict):
+def handle_input(key: int):
+    global input_buffer
     global vy, vx
-    vy, vx = 0, 0
-    if keys[K_UP]:
-        vy += -1
-    if keys[K_DOWN]:
-        vy += 1
-    if keys[K_LEFT] and vx != 1:
-        vx += -1
-    if keys[K_RIGHT] and vx != -1:
-        vx += 1
+    global paused
+    if key == K_p:
+        paused = not paused
+        return
+
+    # keys = first_two_keys(keys)
+    # if len(input_buffer):
+    #     keys = input_buffer.append(keys)
+    # print(keys)
+    if len(input_buffer) < 2:
+        input_buffer.append(key)
+
+def execute_input_buffer():
+    global vx, vy
+    if len(input_buffer):
+        if input_buffer[0] == K_UP and vy != 1:
+            vx, vy = INPUT_DIRECTIONS["UP"]
+        elif input_buffer[0] == K_DOWN and vy != -1:
+            vx, vy = INPUT_DIRECTIONS["DOWN"]
+        elif input_buffer[0] == K_LEFT and vx != 1:
+            vx, vy = INPUT_DIRECTIONS["LEFT"]
+        elif input_buffer[0] == K_RIGHT and vx != -1:
+            vx, vy = INPUT_DIRECTIONS["RIGHT"]
+        input_buffer.pop(0)
 
 
 def update_position():
@@ -47,11 +65,9 @@ def update_position():
         hpy += vy
         spaces[hpx, hpy] = 1
         body.append((hpx, hpy))
-        # print(body)
         while len(body) > snake_length:
             spaces[body[0]] = 0
             body.popleft()
-            # print(body)
 
 
 def check_collision():
@@ -78,7 +94,17 @@ def check_collision():
         apx, apy = random.randint(0, GRID_RESOLUTION-1), \
                           random.randint(0, GRID_RESOLUTION-1)
 
+# def first_two_keys(keys: list):
+#     out = []
+#     for i in range(len(keys)):
+#         if keys[i]:
+#             out.append(i)
+#         if len(out) == 2:
+#             break
+#     return out
 
+
+# overall game stuff
 SCREEN_RESOLUTION = 1024
 GRID_RESOLUTION = 25
 GRID_STEP = int(SCREEN_RESOLUTION / GRID_RESOLUTION)
@@ -105,24 +131,26 @@ snake_length = 1
 running = True
 paused = False
 
+# input stuff
+input_buffer = []
+INPUT_DIRECTIONS = {"UP": (0, -1), "DOWN": (0, 1), "LEFT": (-1, 0), "RIGHT": (1, 0)}
+
 while running:
     clock.tick(15)
     one_input = True
     # do main loop
     for event in pygame.event.get():
-        print(event)
         if event.type == pygame.QUIT:
             pygame.display.quit()
             pygame.quit()
             sys.exit()
-        elif event.type == pygame.KEYUP: # checking if pause the game
-            print("p key UP")
-            if event.key == K_p:
-                paused = not paused
+        if event.type == pygame.KEYDOWN: # checking if pause the game
+            print("handling input")
+            handle_input(event.key)
+
     if not paused:
-        keys = pygame.key.get_pressed()
-        handle_input(keys)
-                # print(vy, vx)
+        # print(vy, vx)
+        execute_input_buffer()
         check_collision()
         update_position()
         render()
