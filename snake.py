@@ -1,14 +1,15 @@
 import sys
 import numpy as np
 import pygame
+from pygame import display
 from pygame.locals import *
 from collections import deque
 import random
 
 # init and opttions
 pygame.init()
+pygame.display.set_caption("snake game | SCORE: ")
 pygame.key.set_repeat()
-print(K_UP)
 
 def render():
     # do the rendering
@@ -80,19 +81,28 @@ def check_collision():
     nexty = hpy + vy
     if nextx >= GRID_RESOLUTION or nextx < 0 or \
             nexty >= GRID_RESOLUTION or nexty < 0:
-        hpx, hpy = int(GRID_RESOLUTION / 2), int(GRID_RESOLUTION / 2)
-        vx, vy = 0, 0
-        snake_length = 1
+        trigger_game_over()
     # are we colliding with ourself?
-    for i in range(len(body) - 2):
+    for i in range(len(body) - 1):
         if (hpx, hpy) == body[i]:
             # temporary fail measure
-            snake_length = 1
+            trigger_game_over()
     # are we eating an apple?
     if (hpx, hpy) == (apx, apy):
         snake_length += 1
         apx, apy = random.randint(0, GRID_RESOLUTION-1), \
                           random.randint(0, GRID_RESOLUTION-1)
+        pygame.display.set_caption("snakegame | SCORE: " + str(snake_length - 1))
+
+
+def trigger_game_over():
+    global hpx, hpy
+    global vx, vy
+    global snake_length
+    hpx, hpy = int(GRID_RESOLUTION / 2), int(GRID_RESOLUTION / 2)
+    vx, vy = 0, 0
+    snake_length = 1
+
 
 # def first_two_keys(keys: list):
 #     out = []
@@ -105,8 +115,9 @@ def check_collision():
 
 
 # overall game stuff
-SCREEN_RESOLUTION = 1024
+UNIT_PIXELS = 30
 GRID_RESOLUTION = 25
+SCREEN_RESOLUTION = GRID_RESOLUTION * UNIT_PIXELS
 GRID_STEP = int(SCREEN_RESOLUTION / GRID_RESOLUTION)
 RWIDTH = GRID_STEP - 1
 
@@ -133,7 +144,8 @@ paused = False
 
 # input stuff
 input_buffer = []
-INPUT_DIRECTIONS = {"UP": (0, -1), "DOWN": (0, 1), "LEFT": (-1, 0), "RIGHT": (1, 0)}
+INPUT_DIRECTIONS = {"UP": (0, -1), "DOWN": (0, 1),
+                    "LEFT": (-1, 0), "RIGHT": (1, 0)}
 
 while running:
     clock.tick(15)
