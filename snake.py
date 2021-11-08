@@ -6,7 +6,7 @@ from pygame.locals import *
 from collections import deque
 import random
 
-# init and opttions
+# pygame init and opttions
 pygame.init()
 pygame.key.set_repeat()
 
@@ -63,6 +63,8 @@ def update_position():
         global hpx, hpy
         global body
         global invincibility_time
+        global move_sound
+        # global FIFTH_FRAME
         if vx != 0 or vy != 0:
             hpx += vx
             hpy += vy
@@ -71,8 +73,13 @@ def update_position():
             while len(body) > snake_length:
                 spaces[body[0]] = 0
                 body.popleft()
+
+        # if (FIFTH_FRAME == 0 and (vx != 0 or vy != 0)):
+        #     move_sound.play()
+
         INVICIBILITY_USED = False
         invincibility_time = INVINCIBILITY_MAX
+
 
 
 def check_collision():
@@ -81,6 +88,7 @@ def check_collision():
     global hpx, hpy
     global vx, vy
     global INVICIBILITY_USED
+    global eat_sound
     # will we collide with wall in next frame?
     nextx = hpx + vx
     nexty = hpy + vy
@@ -101,6 +109,7 @@ def check_collision():
     # are we eating an apple in next frame?
     if (nextx, nexty) == (apx, apy):
         snake_length += 1
+        eat_sound.play()
         apx, apy = random.randint(0, GRID_RESOLUTION-1), \
                           random.randint(0, GRID_RESOLUTION-1)
         update_score()
@@ -141,8 +150,9 @@ GRID_RESOLUTION = 25
 SCREEN_RESOLUTION = GRID_RESOLUTION * UNIT_PIXELS
 GRID_STEP = int(SCREEN_RESOLUTION / GRID_RESOLUTION)
 RWIDTH = GRID_STEP - 1
-INVINCIBILITY_MAX = 50
+INVINCIBILITY_MAX = 2
 INVICIBILITY_USED = False
+# FIFTH_FRAME = 0
 
 screen = pygame.display.set_mode((SCREEN_RESOLUTION, SCREEN_RESOLUTION))
 spaces = np.zeros((GRID_RESOLUTION, GRID_RESOLUTION))
@@ -163,7 +173,6 @@ apx, apy = random.randint(0, GRID_RESOLUTION-1), \
                           random.randint(0, GRID_RESOLUTION-1)
 invincibility_time = INVINCIBILITY_MAX
 snake_length = 1
-update_score() # init the score, which is based on length
 
 # input stuff
 input_buffer = []
@@ -174,8 +183,15 @@ INPUT_DIRECTIONS = {"UP": (0, -1), "DOWN": (0, 1),
 running = True
 paused = False
 
+# initialization calls
+update_score() # init the score, which is based on length
+# move_sound = pygame.mixer.Sound("resources/move2.wav")
+# move_sound.set_volume(0.3)
+eat_sound = pygame.mixer.Sound("resources/bloop.wav")
+
 while running:
     clock.tick(15)
+    # FIFTH_FRAME = (FIFTH_FRAME + 1) % 5
     one_input = True
     # do main loop
     for event in pygame.event.get():
