@@ -8,7 +8,6 @@ import random
 
 # init and opttions
 pygame.init()
-pygame.display.set_caption("snake game | SCORE: ")
 pygame.key.set_repeat()
 
 def render():
@@ -92,7 +91,7 @@ def check_collision():
         snake_length += 1
         apx, apy = random.randint(0, GRID_RESOLUTION-1), \
                           random.randint(0, GRID_RESOLUTION-1)
-        pygame.display.set_caption("snakegame | SCORE: " + str(snake_length - 1))
+        update_score()
 
 
 def trigger_game_over():
@@ -102,7 +101,10 @@ def trigger_game_over():
     hpx, hpy = int(GRID_RESOLUTION / 2), int(GRID_RESOLUTION / 2)
     vx, vy = 0, 0
     snake_length = 1
-    pygame.display.set_caption("snakegame | SCORE: 0")
+    update_score()
+
+def update_score():
+    pygame.display.set_caption("snakegame | SCORE: " + str(snake_length - 1))
 
 
 # def first_two_keys(keys: list):
@@ -140,6 +142,7 @@ spaces[hpx, hpy] = 1
 apx, apy = random.randint(0, GRID_RESOLUTION-1), \
                           random.randint(0, GRID_RESOLUTION-1)
 snake_length = 1
+update_score() # init the score, which is based on length
 running = True
 paused = False
 
