@@ -1,4 +1,6 @@
 # snakegame
+**now with sound!**
+
 literally just snake
 
 Made using [pygame](https://www.pygame.org/news)
