@@ -58,16 +58,21 @@ def execute_input_buffer():
 
 
 def update_position():
-    global hpx, hpy
-    global body
-    if vx != 0 or vy != 0:
-        hpx += vx
-        hpy += vy
-        spaces[hpx, hpy] = 1
-        body.append((hpx, hpy))
-        while len(body) > snake_length:
-            spaces[body[0]] = 0
-            body.popleft()
+    global INVICIBILITY_USED
+    if not INVICIBILITY_USED: # don't update position if we are using leniency
+        global hpx, hpy
+        global body
+        global invincibility_time
+        if vx != 0 or vy != 0:
+            hpx += vx
+            hpy += vy
+            spaces[hpx, hpy] = 1
+            body.append((hpx, hpy))
+            while len(body) > snake_length:
+                spaces[body[0]] = 0
+                body.popleft()
+        INVICIBILITY_USED = False
+        invincibility_time = INVINCIBILITY_MAX
 
 
 def check_collision():
@@ -75,33 +80,46 @@ def check_collision():
     global apx, apy
     global hpx, hpy
     global vx, vy
-    # are we colliding with a wall?
+    global INVICIBILITY_USED
+    # will we collide with wall in next frame?
     nextx = hpx + vx
     nexty = hpy + vy
     if nextx >= GRID_RESOLUTION or nextx < 0 or \
-            nexty >= GRID_RESOLUTION or nexty < 0:
-        trigger_game_over()
-    # are we colliding with ourself?
+                                        nexty >= GRID_RESOLUTION or nexty < 0:
+        attempt_game_over()
+        return
+
+    # are we colliding with ourself in next frame?
     for i in range(len(body) - 1):
-        if (hpx, hpy) == body[i]:
+        if (nextx, nexty) == body[i]:
             # temporary fail measure
-            trigger_game_over()
-    # are we eating an apple?
-    if (hpx, hpy) == (apx, apy):
+            attempt_game_over()
+            return
+
+    # we would have returned before getting here if we did lose
+    INVICIBILITY_USED = False
+    # are we eating an apple in next frame?
+    if (nextx, nexty) == (apx, apy):
         snake_length += 1
         apx, apy = random.randint(0, GRID_RESOLUTION-1), \
                           random.randint(0, GRID_RESOLUTION-1)
         update_score()
 
 
-def trigger_game_over():
+def attempt_game_over():
     global hpx, hpy
     global vx, vy
     global snake_length
-    hpx, hpy = int(GRID_RESOLUTION / 2), int(GRID_RESOLUTION / 2)
-    vx, vy = 0, 0
-    snake_length = 1
-    update_score()
+    global invincibility_time, INVICIBILITY_USED
+    print(invincibility_time)
+    if invincibility_time == 0: # we hit a game over and no more leniency time
+        hpx, hpy = int(GRID_RESOLUTION / 2), int(GRID_RESOLUTION / 2)
+        vx, vy = 0, 0
+        snake_length = 1
+        update_score()
+    else:
+        invincibility_time -= 1
+        INVICIBILITY_USED = True
 
 def update_score():
     pygame.display.set_caption("snakegame | SCORE: " + str(snake_length - 1))
@@ -123,6 +141,8 @@ GRID_RESOLUTION = 25
 SCREEN_RESOLUTION = GRID_RESOLUTION * UNIT_PIXELS
 GRID_STEP = int(SCREEN_RESOLUTION / GRID_RESOLUTION)
 RWIDTH = GRID_STEP - 1
+INVINCIBILITY_MAX = 50
+INVICIBILITY_USED = False
 
 screen = pygame.display.set_mode((SCREEN_RESOLUTION, SCREEN_RESOLUTION))
 spaces = np.zeros((GRID_RESOLUTION, GRID_RESOLUTION))
@@ -141,15 +161,18 @@ body.append((hpx, hpy))
 spaces[hpx, hpy] = 1
 apx, apy = random.randint(0, GRID_RESOLUTION-1), \
                           random.randint(0, GRID_RESOLUTION-1)
+invincibility_time = INVINCIBILITY_MAX
 snake_length = 1
 update_score() # init the score, which is based on length
-running = True
-paused = False
 
 # input stuff
 input_buffer = []
 INPUT_DIRECTIONS = {"UP": (0, -1), "DOWN": (0, 1),
                     "LEFT": (-1, 0), "RIGHT": (1, 0)}
+
+# game-controlling variables
+running = True
+paused = False
 
 while running:
     clock.tick(15)
